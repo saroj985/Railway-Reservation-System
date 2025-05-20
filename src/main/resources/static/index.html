@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Railway Reservation Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef;
+            padding: 20px;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+        }
+        form, .display-section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-top: 15px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Railway Reservation Form</h2>
+
+<form action="/passenger/createPassengers" method="post">
+    <label for="type">Passenger Type</label>
+    <select id="type" name="passengerType" onchange="toggleFields()">
+        <option value="General">General</option>
+        <option value="SeniorCitizen">Senior Citizen</option>
+        <option value="PhysicallyHandicapped">Physically Handicapped</option>
+    </select>
+
+    <label>Name</label>
+    <input type="text" name="name" required>
+
+    <label>Email</label>
+    <input type="email" name="email" required>
+
+    <label>Mobile</label>
+    <input type="number" name="mobile" required>
+
+    <label>Destination</label>
+    <input type="text" name="destination" required>
+
+    <label>Seat Number</label>
+    <input type="number" name="seatNumber" required>
+
+    <label>Coach Type</label>
+    <input type="text" name="coachType" required>
+
+    <div id="seniorFields" class="hidden">
+        <label>Discount (%)</label>
+        <input type="number" step="0.1" name="discount">
+
+        <label>Senior Citizen ID</label>
+        <input type="number" name="seniorCitizenId">
+    </div>
+
+    <div id="handicappedFields" class="hidden">
+        <label>Proof of Disability</label>
+        <input type="text" name="proofOfDisability">
+    </div>
+
+    <button type="submit">Reserve</button>
+</form>
+
+<div class="display-section">
+    <h3 style="text-align:center;">Physically Handicapped Passengers</h3>
+    <button onclick="displayPhysicallyHandicapped()">Display List</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    function toggleFields() {
+        const type = document.getElementById('type').value;
+        document.getElementById('seniorFields').classList.add('hidden');
+        document.getElementById('handicappedFields').classList.add('hidden');
+
+        if (type === 'SeniorCitizen') {
+            document.getElementById('seniorFields').classList.remove('hidden');
+        } else if (type === 'PhysicallyHandicapped') {
+            document.getElementById('handicappedFields').classList.remove('hidden');
+        }
+    }
+
+    function displayPhysicallyHandicapped() {
+        fetch('/passenger/displayPhysicallyHandicappedPassengers')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').textContent = data;
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = 'Error: ' + error;
+            });
+    }
+</script>
+
+
+<script>
+    function displayPhysicallyHandicapped() {
+        fetch('/passenger/displayPhysicallyHandicappedPassengers')
+            .then(response => response.json())
+            .then(data => {
+                if (!Array.isArray(data) || data.length === 0) {
+                    document.getElementById('result').innerHTML = '<em>No passengers found.</em>';
+                    return;
+                }
+                let table = `<table style="width:100%;border-collapse:collapse;">
+                    <tr>
+                        <th style="border:1px solid #ccc;padding:8px;">Name</th>
+                        <th style="border:1px solid #ccc;padding:8px;">Email</th>
+                        <th style="border:1px solid #ccc;padding:8px;">Mobile</th>
+                        <th style="border:1px solid #ccc;padding:8px;">Destination</th>
+                        <th style="border:1px solid #ccc;padding:8px;">Seat No.</th>
+                        <th style="border:1px solid #ccc;padding:8px;">Coach Type</th>
+                        <th style="border:1px solid #ccc;padding:8px;">Proof of Disability</th>
+                    </tr>`;
+                data.forEach(p => {
+                    table += `<tr>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.name || ''}</td>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.email || ''}</td>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.mobile || ''}</td>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.destination || ''}</td>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.seat_number || ''}</td>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.coachType || ''}</td>
+                        <td style="border:1px solid #ccc;padding:8px;">${p.proof_of_disability || ''}</td>
+                    </tr>`;
+                });
+                table += '</table>';
+                document.getElementById('result').innerHTML = table;
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = 'Error: ' + error;
+            });
+    }
+</script>
+
+</body>
+</html>
